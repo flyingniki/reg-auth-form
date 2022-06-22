@@ -1,0 +1,15 @@
+DROP DATABASE IF EXISTS testform;
+
+CREATE DATABASE testform
+  DEFAULT CHARACTER SET utf8
+  DEFAULT COLLATE utf8_general_ci;
+
+USE testform;
+
+CREATE TABLE users (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `name` VARCHAR(255) NOT NULL,
+  `login` VARCHAR(255) NOT NULL,
+  `password` CHAR(64) NOT NULL
+);
