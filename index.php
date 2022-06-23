@@ -3,7 +3,7 @@
 require_once 'init.php';
 
 if (!empty($_SESSION['user']['userId'])) {
-    //header("Location: /admin.php");
+    header("Location: /admin.php");
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['user']['email'] = $user['email'];
                     $_SESSION['user']['userId'] = $user['id'];
                     $_SESSION['user']['userName'] = $user['name'];
+                    $_SESSION['user']['password'] = $user['password'];
                     break;
                 }
             }
