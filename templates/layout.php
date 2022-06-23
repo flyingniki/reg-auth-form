@@ -31,7 +31,7 @@
     <link href="style.css" rel="stylesheet" />
 </head>
 
-<body class="text-center">
+<body class="text-center">    
     <main class="form-signin">
         <?= $content ?>
     </main>

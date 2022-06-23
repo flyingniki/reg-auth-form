@@ -11,3 +11,4 @@ require_once('functions.php');
 
 $conn = dbConnect($config['db']); // записываем соединение в переменную
 $userId = getUserIdFromSession(); // получаем ID пользователя из сессии
+$users = getUsers($conn);

@@ -236,3 +236,44 @@ function validateRegisterForm($users)
     //print_r($errors);
     return $errors;
 }
+
+function validateAuthForm() {
+    $result = [];
+    $result['login'] = filter_input(INPUT_POST, 'login', FILTER_SANITIZE_SPECIAL_CHARS) ?? NULL;
+    $result['password'] = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_SPECIAL_CHARS) ?? NULL;
+
+    $errors = [
+        'login' => validateRequiredField($result['login']),
+        'password' => validateRequiredField($result['password'])
+    ];
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+/* Проверка авторизации
+@param array $data - данные из формы авторизации
+@param array $users - массив существующих пользователей
+@return array -  результат проверки
+*/
+function checkAuth($data, $users) {
+    $login = $data['login'];
+    $password = $data['password'];
+    $errors = [];
+    $errors['login'] = 'Неверный логин';
+    foreach ($users as $user) {
+        if ($login === $user['login']) {
+            $errors['login'] = '';
+            $passwordHash = password_hash($user['password'], PASSWORD_DEFAULT);
+            if (password_verify($password, $passwordHash)) {
+                $errors['password'] = NULL;
+                break;
+            }
+            else {
+                $errors['password'] = 'Неверный пароль';
+            }
+        }
+    }
+    $errors = array_filter($errors);
+    return $errors;
+}

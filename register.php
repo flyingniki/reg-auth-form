@@ -23,11 +23,10 @@ $content = includeTemplate('register.php', [
     'class' => $classError ?? [],
     'errors' => $errors ?? []
 ]);
-$title = 'Register';
 
 $layout = includeTemplate('layout.php', [
     'content' => $content,
-    'title' => $title
+    'title' => 'Register'
 ]);
 
 print($layout);
