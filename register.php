@@ -1,17 +1,28 @@
 <?php
 
-require_once 'functions.php';
-require_once 'config.php';
+require_once 'init.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $conn = dbConnect($config['db']); // записываем соединение в переменную
+
+    $users = getUsers($conn); // список пользователей
     $post = filterArray($_POST);
-    addUsers($conn, $post);
-    header("Location: /index.php");
-    exit();
+    $errors = validateRegisterForm($users);
+
+    foreach ($errors as $key => $value) {
+        $classError[$key] = 'form__input--error';
+    }
+    if (empty($errors)) {
+        addUsers($conn, $post);
+        header("Location: /index.php");
+        exit();
+    }
 }
 
-$content = includeTemplate('register.php', []);
+$content = includeTemplate('register.php', [
+    'post' => $post ?? [],
+    'class' => $classError ?? [],
+    'errors' => $errors ?? []
+]);
 $title = 'Register';
 
 $layout = includeTemplate('layout.php', [

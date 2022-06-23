@@ -126,6 +126,16 @@ function db_get_prepare_stmt($link, $sql, $data = [])
     return $stmt;
 }
 
+/** Процесс формирования запроса для получения списка пользователей
+@param mysqli $conn - ресурс соединения с БД
+@return array - ответ запроса в виде двумерного массива
+ */
+function getUsers(mysqli $conn)
+{
+    $sql = 'SELECT * FROM users u';
+    return dbQuery($conn, $sql);
+}
+
 /** Сохраняет пользователя в БД
 @param mysqli $conn ресурс соединения с БД
 @param array $data данные из формы
@@ -147,4 +157,82 @@ function addUsers($conn, $data)
     $result = mysqli_stmt_get_result($stmt);
 
     return $result;
+}
+
+/** Проверяет заполненность обязательных полей
+@param string $field поле ввода
+@return string|null  результат проверки
+ */
+function validateRequiredField($field)
+{
+    if (mb_strlen(trim($field)) == 0) {
+        return 'Это поле должно быть заполнено';
+    }
+    return null;
+}
+
+/** Проверка email в форме регистрации
+@param string $email введеный email
+@param array $users список пользователей
+@return string|null результат валидации
+ */
+function validateRegEmail($email, $users)
+{
+    if (!validateRequiredField($email)) {
+        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            foreach ($users as $user) {
+                if ($email === $user['email']) {
+                    return 'Пользователь с таким e-mail уже существует';
+                    break;
+                }
+                return null;
+            }
+        } else {
+            return 'E-mail введён некорректно';
+        }
+    }
+    return validateRequiredField($email);
+}
+
+/** Получение ID пользователя из сессии
+@return int ID пользователя
+*/
+function getUserIdFromSession()
+{
+    $userId = $_SESSION['user']['userId'] ?? null;
+    return $userId;
+}
+
+/** Получает и фильтрует данные из формы для последующей валидации
+@return array результат фильтрации
+ */
+function getRegisterFormData()
+{
+    $result = [];
+    $result['login'] = filter_input(INPUT_POST, 'login', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    $result['email'] = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    $result['password'] = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    $result['name'] = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    return $result;
+}
+
+/** Валидация формы регистрации на ошибки
+@param array $users список пользователей
+@return array|null результат валидации
+ */
+function validateRegisterForm($users)
+{
+    $result = getRegisterFormData();
+
+    $errors = [
+        'login' => validateRequiredField($result['login']),
+        'email' => validateRegEmail($result['email'], $users),
+        'password' => validateRequiredField($result['password']),
+        'name' => validateRequiredField($result['name'])
+    ];
+
+    $errors = array_filter($errors);
+    //echo 'Ошибки: ';
+    //print_r($errors);
+    return $errors;
 }
