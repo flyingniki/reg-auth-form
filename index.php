@@ -20,11 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (empty($errors)) {
             foreach ($users as $user) {
                 if ($post['login'] === $user['login']) {
-                    $_SESSION['user']['login'] = $user['login'];
-                    $_SESSION['user']['email'] = $user['email'];
                     $_SESSION['user']['userId'] = $user['id'];
                     $_SESSION['user']['userName'] = $user['name'];
-                    $_SESSION['user']['password'] = $user['password'];
+                    $_SESSION['user']['passwordHash'] = $user['password'];
                     break;
                 }
             }

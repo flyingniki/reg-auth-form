@@ -3,9 +3,8 @@
 require_once 'init.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-    $users = getUsers($conn); // список пользователей
-    $post = filterArray($_POST);
+    $users = getUsers($conn);
+    $post = getRegisterFormData();
     $errors = validateRegisterForm($users);
 
     foreach ($errors as $key => $value) {
@@ -13,7 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if (empty($errors)) {
         addUsers($conn, $post);
-        header("Location: /index.php");
+        $_SESSION['user']['userId'] = $user['id'];
+        $_SESSION['user']['userName'] = $user['name'];
+        $_SESSION['user']['passwordHash'] = $user['password'];
+        header("Location: /admin.php");
         exit();
     }
 }

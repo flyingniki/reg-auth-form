@@ -32,4 +32,5 @@
     <button class="w-100 btn btn-lg btn-primary" type="submit">
         Register
     </button>
+    <a href="/index.php">Back to main page</a>
 </form>

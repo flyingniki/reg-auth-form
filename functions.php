@@ -3,7 +3,7 @@
 /** Приводит данные в безопасное представление (удаляет пробелы и очищает от html-тегов)
 @param string $data
 @return string результат
-*/
+ */
 function filterString($data)
 {
     return htmlspecialchars(stripslashes(trim($data)));
@@ -12,7 +12,7 @@ function filterString($data)
 /** Приводит данные в безопасное представление (удаляет пробелы и очищает от html-тегов)
 @param array $data
 @return array результат
-*/
+ */
 
 function filterArray($data)
 {
@@ -145,8 +145,8 @@ function addUsers($conn, $data)
 {
     $dataArray = [
         $data['login'],
-        $data['password'],
-        $data['email'],        
+        password_hash($data['password'], PASSWORD_DEFAULT),
+        $data['email'],
         $data['name']
     ];
 
@@ -196,7 +196,7 @@ function validateRegEmail($email, $users)
 
 /** Получение ID пользователя из сессии
 @return int ID пользователя
-*/
+ */
 function getUserIdFromSession()
 {
     $userId = $_SESSION['user']['userId'] ?? null;
@@ -232,12 +232,11 @@ function validateRegisterForm($users)
     ];
 
     $errors = array_filter($errors);
-    //echo 'Ошибки: ';
-    //print_r($errors);
     return $errors;
 }
 
-function validateAuthForm() {
+function validateAuthForm()
+{
     $result = [];
     $result['login'] = filter_input(INPUT_POST, 'login', FILTER_SANITIZE_SPECIAL_CHARS) ?? NULL;
     $result['password'] = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_SPECIAL_CHARS) ?? NULL;
@@ -256,7 +255,8 @@ function validateAuthForm() {
 @param array $users - массив существующих пользователей
 @return array -  результат проверки
 */
-function checkAuth($data, $users) {
+function checkAuth($data, $users)
+{
     $login = $data['login'];
     $password = $data['password'];
     $errors = [];
@@ -264,16 +264,56 @@ function checkAuth($data, $users) {
     foreach ($users as $user) {
         if ($login === $user['login']) {
             $errors['login'] = '';
-            $passwordHash = password_hash($user['password'], PASSWORD_DEFAULT);
+            $passwordHash = $user['password'];
             if (password_verify($password, $passwordHash)) {
                 $errors['password'] = NULL;
                 break;
-            }
-            else {
+            } else {
                 $errors['password'] = 'Неверный пароль';
             }
         }
     }
     $errors = array_filter($errors);
     return $errors;
+}
+
+/** Получает и фильтрует данные из формы для последующей валидации
+@return array результат фильтрации
+ */
+function getAdminFormData()
+{
+    $result = [];
+    $result['newName'] = filter_input(INPUT_POST, 'new-name', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    $result['newPassword'] = filter_input(INPUT_POST, 'new-password', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    $result['oldPassword'] = filter_input(INPUT_POST, 'old-password', FILTER_SANITIZE_SPECIAL_CHARS) ?? null;
+    return $result;
+}
+
+/** Валидация формы изменения персональных данных на ошибки
+@param array $users список пользователей
+@return array|null результат валидации
+ */
+function validateAdminForm()
+{
+    $result = getAdminFormData();
+    $errors = [
+        'newName' => validateRequiredField($result['newName']),
+        'newPassword' => validateRequiredField($result['newPassword']),
+        'oldPassword' => validateRequiredField($result['oldPassword'])
+    ];
+
+    $errors = array_filter($errors);
+    return $errors;
+}
+
+function setNewUserPassword($conn, $userId, $newPasswordHash)
+{
+    $sql = "UPDATE users u SET `password`='$newPasswordHash' WHERE `id`='$userId'";
+    mysqli_query($conn, $sql);
+}
+
+function setNewUserName($conn, $userId, $newUserName)
+{
+    $sql = "UPDATE users u SET `name`='$newUserName' WHERE `id`='$userId'";
+    mysqli_query($conn, $sql);
 }

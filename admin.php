@@ -3,34 +3,37 @@
 require_once 'init.php';
 
 $userName = $_SESSION['user']['userName'];
-$userId = $_SESSION['user']['userId'];
-$hash = $_SESSION['user']['password'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $post = filterArray($_POST);
-    $query = "SELECT * FROM users u WHERE id='$userId'";
-
-    $result = mysqli_query($conn, $query);
-    $user = mysqli_fetch_assoc($result);
-    $newUserName = $post['new-name'];
-    $oldPassword = $post['old-password'];
-    $newPassword = $post['new-password'];
-
-    // Проверяем соответствие хеша из базы введенному старому паролю
-    if (password_verify($oldPassword, $hash)) {
-        $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
-
-        $query = "UPDATE users u SET `password`='$newPasswordHash' WHERE `id`='$userId'";
-
-        mysqli_query($conn, $query);
-    } else {
-        $error = 'Неверный пароль';
+    $post = getAdminFormData();
+    $newUserName = $post['newName'];
+    $oldPassword = $post['oldPassword'];
+    $newPassword =$post['newPassword'];
+    $errors = validateAdminForm();
+    foreach ($errors as $key => $value) {
+        $classError[$key] = 'form__input--error';
+    }
+    if (empty($errors)) {        
+        $oldPasswordHash = $_SESSION['user']['passwordHash'];
+        if (password_verify($oldPassword, $oldPasswordHash)) {
+            $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            setNewUserName($conn, $userId, $newUserName);
+            setNewUserPassword($conn, $userId, $newPasswordHash);
+            $_SESSION['user']['userName'] = $newUserName;
+            $_SESSION['user']['passwordHash'] = $newPasswordHash;
+            header("Location: /admin.php");
+            exit();
+        } else {
+            $classError['oldPassword'] = 'form__input--error';
+            $errors['oldPassword'] = 'Неверный пароль';
+        }
     }
 }
 
 $content = includeTemplate('admin.php', [
     'userName' => $userName,
-    'error' => $error ?? null
+    'errors' => $errors ?? [],
+    'class' => $classError ?? []
 ]);
 
 $layout = includeTemplate('layout.php', [
